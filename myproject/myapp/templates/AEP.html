@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Associate EPG with AEP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('your-background-image-url.jpg'); /* Add your background image URL */
+            background-size: cover;
+        }
+        h1 {
+            text-align: center;
+            color: #e60000; /* Ooredoo primary color */
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8); /* Add opacity to the form background */
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333; /* Ooredoo primary color */
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #e60000; /* Ooredoo red color */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover {
+            background-color: #cc0000; /* Darker shade of red on hover */
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <h1>Associate EPG with AEP</h1>
+    <form id="aepForm">
+        <label for="aep">AEP:</label>
+        <input type="text" id="aep" name="aep" required><br><br>
+
+        <label for="tenant">Tenant:</label>
+        <input type="text" id="tenant" name="tenant" required><br><br>
+
+        <label for="ap">Application Profile:</label>
+        <input type="text" id="ap" name="ap" required><br><br>
+
+        <label for="epg">EPG:</label>
+        <input type="text" id="epg" name="epg" required><br><br>
+
+        <label for="encap_id">Encap ID:</label>
+        <input type="text" id="encap_id" name="encap_id" required><br><br>
+
+        <label for="interface_mode">Interface Mode:</label>
+        <select id="interface_mode" name="interface_mode" required>
+            <option value="access">Access</option>
+            <option value="trunk">Trunk</option>
+        </select><br><br>
+
+        <button type="button" id="generate">Generate YAML</button>
+        <button type="button" id="copy" disabled>Copy YAML</button>
+        <button type="button" id="download" disabled>Download YAML</button>
+    </form>
+
+    <div id="result"></div>
+
+    <textarea id="yamlCode" rows="10" cols="50" readonly style="display: none;"></textarea><br><br>
+    <textarea id="ansibleCode" name="ansibleCode" rows="10" cols="50" readonly></textarea><br><br>
+
+    <textarea id="copyArea" style="display: none;"></textarea> <!-- Hidden textarea for copying text -->
+
+    <script>
+        document.getElementById("generate").addEventListener("click", function() {
+            const aep = document.getElementById("aep").value;
+            const tenant = document.getElementById("tenant").value;
+            const ap = document.getElementById("ap").value;
+            const epg = document.getElementById("epg").value;
+            const encap_id = document.getElementById("encap_id").value;
+            const interface_mode = document.getElementById("interface_mode").value;
+
+            const yamlCode = `- name: Associate EPG with AEP
+  cisco.aci.aci_aep_to_epg:
+    host: apic
+    username: admin
+    password: SomeSecretPassword
+    aep: ${aep}
+    tenant: ${tenant}
+    ap: ${ap}
+    epg: ${epg}
+    encap_id: ${encap_id}
+    interface_mode: ${interface_mode}
+    state: present`;
+
+            document.getElementById("yamlCode").value = yamlCode;
+            document.getElementById("ansibleCode").value = yamlCode; // Set Ansible code
+            document.getElementById("copy").disabled = false;
+            document.getElementById("download").disabled = false;
+        });
+
+        document.getElementById("copy").addEventListener("click", function() {
+            const yamlCode = document.getElementById("yamlCode").value;
+            document.getElementById("copyArea").value = yamlCode;
+
+            const copyText = document.getElementById("copyArea");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+            document.execCommand("copy");
+            alert("YAML code copied to clipboard!");
+        });
+
+        document.getElementById("download").addEventListener("click", function() {
+            const aepProfileName = document.getElementById("aep").value;
+            const yamlCode = document.getElementById("yamlCode").value;
+
+            const element = document.createElement("a");
+            const file = new Blob([yamlCode], { type: 'text/plain' });
+            element.href = URL.createObjectURL(file);
+            element.download = `${aepProfileName}.yaml`;
+            document.body.appendChild(element); // Required for this to work in Firefox
+            element.click();
+            document.body.removeChild(element);
+        });
+    </script>
+</body>
+</html>
+

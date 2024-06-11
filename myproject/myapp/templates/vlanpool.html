@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create VLAN Pool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #F2F2F2; /* Set background color */
+        }
+        h1 {
+            text-align: center;
+            color: #CC0000; /* Set heading color */
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333333; /* Set label color */
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #CCCCCC; /* Set input border color */
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #CC0000; /* Set button background color */
+            color: #FFFFFF; /* Set button text color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:disabled {
+            background-color: #CCCCCC;
+            cursor: not-allowed;
+        }
+        button:hover {
+            background-color: #990000; /* Set button hover background color */
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #CCCCCC; /* Set textarea border color */
+            border-radius: 5px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <h1>Create VLAN Pool</h1>
+    <form id="vlanForm">
+        <label for="pool">Pool:</label>
+        <input type="text" id="pool" name="pool" required><br><br>
+
+        <label for="allocationMode">Allocation Mode:</label>
+        <select id="allocationMode" name="allocationMode" required>
+            <option value="static">Static</option>
+            <option value="dynamic">Dynamic</option>
+        </select><br><br>
+
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description"><br><br>
+
+        <button type="button" id="generate">Generate YAML</button>
+        <button type="button" id="copy" disabled>Copy YAML</button>
+        <button type="button" id="download" disabled>Execute</button> <!-- Changed button text to "Execute" -->
+    </form>
+
+    <div id="result"></div>
+
+    <textarea id="yamlCode" rows="10" cols="50" readonly style="display: none;"></textarea><br><br>
+    <textarea id="ansibleCode" name="ansibleCode" rows="10" cols="50" readonly></textarea><br><br>
+
+    <script>
+        document.getElementById("generate").addEventListener("click", function() {
+            const pool = document.getElementById("pool").value;
+            const allocationMode = document.getElementById("allocationMode").value;
+            const description = document.getElementById("description").value;
+
+            const yamlCode = `- name: Add a new VLAN pool
+  cisco.aci.aci_vlan_pool:
+    host: sandboxapic.com
+    username: admin
+    password: !v3G@!4@Y
+    pool: ${pool}
+    pool_allocation_mode: ${allocationMode}
+    description: ${description}
+    state: present`;
+
+            document.getElementById("yamlCode").value = yamlCode;
+            document.getElementById("ansibleCode").value = yamlCode; // Set Ansible code
+            document.getElementById("copy").disabled = false;
+            document.getElementById("download").disabled = false;
+        });
+
+        document.getElementById("copy").addEventListener("click", function() {
+            const yamlCode = document.getElementById("yamlCode");
+            yamlCode.select();
+            yamlCode.setSelectionRange(0, 99999); /* For mobile devices */
+
+            document.execCommand("copy");
+            alert("YAML code copied to clipboard!");
+        });
+
+        document.getElementById("download").addEventListener("click", function() {
+            const poolName = document.getElementById("pool").value;
+            const yamlCode = document.getElementById("yamlCode").value;
+
+            const element = document.createElement("a");
+            const file = new Blob([yamlCode], {type: 'text/plain'});
+            element.href = URL.createObjectURL(file);
+            element.download = poolName + ".yaml";
+            document.body.appendChild(element); // Required for this to work in Firefox
+            element.click();
+            document.body.removeChild(element);
+        });
+    </script>
+</body>
+</html>
+

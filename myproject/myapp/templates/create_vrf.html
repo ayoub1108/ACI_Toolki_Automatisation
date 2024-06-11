@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRF</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    padding: 0;
+    background-color: #f4f4f4;
+  }
+  h1 {
+    color: #e60000; /* Ooredoo primary color */
+  }
+  label {
+    font-weight: bold;
+    color: #333; /* Ooredoo primary color */
+  }
+  input[type="text"] {
+    width: 200px;
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+  button {
+    padding: 8px 15px;
+    background-color: #e60000; /* Ooredoo red color */
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #cc0000; /* Darker shade of red on hover */
+  }
+  textarea {
+    width: 100%;
+    padding: 5px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<h1>Input Content</h1>
+<label for="vrfName">VRF Name:</label>
+<input type="text" id="vrfName" required><br><br>
+<label for="ownerKey">Owner Key:</label>
+<input type="text" id="ownerKey"><br><br>
+<label for="ownerTag">Owner Tag:</label>
+<input type="text" id="ownerTag"><br><br>
+<label for="tenantName">Tenant Name:</label>
+<input type="text" id="tenantName" required><br><br>
+<button onclick="generateYAML()">Generate YAML Code</button><br><br>
+<textarea id="yamlCode" rows="10" cols="50"></textarea>
+<button onclick="copyToClipboard()">Copy Code</button>
+<button onclick="saveAndExecute()">Execute</button>
+
+<script>
+function generateYAML() {
+  const vrfName = document.getElementById('vrfName').value;
+  const ownerKey = document.getElementById('ownerKey').value || '';
+  const ownerTag = document.getElementById('ownerTag').value || '';
+  const tenantName = document.getElementById('tenantName').value;
+
+  const yamlCode = `- name: Add new VRF to Cisco ACI
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Create VRF
+      aci_rest:
+        hostname: sandboxapicdc.cisco.com
+        username: admin
+        password: "!v3G@!4@Y"
+        validate_certs: no
+        method: post
+        path: "/api/mo/uni/tn-${tenantName}/ctx-${vrfName}.json"
+        content:
+          fvCtx:
+            attributes:
+              name: ${vrfName}
+              ownerKey: '${ownerKey}'
+              ownerTag: '${ownerTag}'
+            children: []`;
+
+  document.getElementById('yamlCode').value = yamlCode;
+}
+
+function copyToClipboard() {
+  const yamlCode = document.getElementById('yamlCode');
+  yamlCode.select();
+  document.execCommand('copy');
+  alert('Code copied to clipboard!');
+}
+
+function saveAndExecute() {
+  const vrfName = document.getElementById('vrfName').value;
+  const yamlCode = document.getElementById('yamlCode').value;
+
+  const blob = new Blob([yamlCode], { type: 'text/plain' });
+  const filename = `${vrfName}.yaml`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+
+  // Execute command in the background
+  const command = `go1 ${filename}`;
+  // Code to execute the command in the background goes here
+}
+</script>
+</body>
+</html>
+

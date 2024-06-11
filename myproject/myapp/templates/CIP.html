@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Interface Policy</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-image: url('file:///home/ayoub/Downloads/Untitled.png');
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  form {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* Add opacity to the form background */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  label {
+    font-weight: bold;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  select {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #45a049;
+  }
+
+  #yamlCode {
+    resize: vertical;
+    width: 100%;
+    height: 300px; /* Adjust the height as needed */
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+<form>
+  <label for="policyName">Policy Name:</label>
+  <input type="text" id="policyName" name="policyName" required><br><br>
+  
+  <label for="stpMode">STP Mode:</label>
+  <select id="stpMode" name="stpMode">
+    <option value="none">None</option>
+    <option value="mstp">MSTP</option>
+    <option value="rstp">RSTP</option>
+    <option value="pvst">PVST</option>
+  </select><br><br>
+  
+  <label for="stpPriority">STP Priority:</label>
+  <input type="number" id="stpPriority" name="stpPriority" min="0" max="61440"><br><br>
+  
+  <label for="lldpEnable">LLDP Enable:</label>
+  <select id="lldpEnable" name="lldpEnable">
+    <option value="yes">Yes</option>
+    <option value="no">No</option>
+  </select><br><br>
+  
+  <label for="lldpInterval">LLDP Advertisement Interval (in seconds):</label>
+  <input type="number" id="lldpInterval" name="lldpInterval" min="0"><br><br>
+
+  <label for="mcpEnable">MCP Enable:</label>
+  <select id="mcpEnable" name="mcpEnable">
+    <option value="yes">Yes</option>
+    <option value="no">No</option>
+  </select><br><br>
+
+  <label for="lacpEnable">LACP Enable:</label>
+  <select id="lacpEnable" name="lacpEnable">
+    <option value="yes">Yes</option>
+    <option value="no">No</option>
+  </select><br><br>
+
+  <label for="speed">Speed:</label>
+  <select id="speed" name="speed">
+    <option value="auto">Auto</option>
+    <option value="10">10 Mbps</option>
+    <option value="100">100 Mbps</option>
+    <option value="1000">1 Gbps</option>
+    <option value="10000">10 Gbps</option>
+  </select><br><br>
+
+  <label for="duplex">Duplex:</label>
+  <select id="duplex" name="duplex">
+    <option value="auto">Auto</option>
+    <option value="full">Full</option>
+    <option value="half">Half</option>
+  </select><br><br>
+
+  <label for="flowControl">Flow Control:</label>
+  <select id="flowControl" name="flowControl">
+    <option value="on">On</option>
+    <option value="off">Off</option>
+    <option value="auto">Auto</option>
+  </select><br><br>
+  
+  <label for="mtu">MTU:</label>
+  <input type="number" id="mtu" name="mtu" min="0"><br><br>
+
+  <label for="description">Description:</label><br>
+  <textarea id="description" name="description" rows="4" cols="50"></textarea><br><br>
+
+  <!-- Add more options here -->
+  
+  <button type="button" onclick="generateYAML()">Generate YAML</button><br><br>
+  
+  <label for="yamlCode">YAML Code:</label><br>
+  <textarea id="yamlCode" name="yamlCode" readonly></textarea><br><br>
+  
+  <button type="button" onclick="copyYAMLCode()">Copy YAML Code</button><br><br>
+  
+  <button type="button" onclick="downloadYAML()">Download YAML</button>
+</form>
+
+<script>
+function generateYAML() {
+  let policyName = document.getElementById("policyName").value;
+  let stpMode = document.getElementById("stpMode").value;
+  let stpPriority = document.getElementById("stpPriority").value;
+  let lldpEnable = document.getElementById("lldpEnable").value;
+  let lldpInterval = document.getElementById("lldpInterval").value;
+  let mcpEnable = document.getElementById("mcpEnable").value;
+  let lacpEnable = document.getElementById("lacpEnable").value;
+  let speed = document.getElementById("speed").value;
+  let duplex = document.getElementById("duplex").value;
+  let flowControl = document.getElementById("flowControl").value;
+  let mtu = document.getElementById("mtu").value;
+  let description = document.getElementById("description").value;
+
+  let yamlCode = `- name: Create Interface Policy on sandboxapic.com
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars_prompt:
+    - name: policy_name
+      prompt: "Enter the name of the interface policy:"
+      private: no
+      default: ${policyName}
+    - name: stp_mode
+      prompt: "Enter STP mode (none | mstp | rstp | pvst):"
+      private: no
+      default: ${stpMode}
+    - name: stp_priority
+      prompt: "Enter STP priority (0-61440):"
+      private: no
+      default: ${stpPriority}
+    - name: lldp_enable
+      prompt: "Enable LLDP? (yes/no):"
+      private: no
+      default: ${lldpEnable}
+    - name: lldp_interval
+      prompt: "Enter LLDP advertisement interval (in seconds):"
+      private: no
+      default: ${lldpInterval}
+    - name: mcp_enable
+      prompt: "Enable MCP? (yes/no):"
+      private: no
+      default: ${mcpEnable}
+    - name: lacp_enable
+      prompt: "Enable LACP? (yes/no):"
+      private: no
+      default: ${lacpEnable}
+    - name: speed
+      prompt: "Enter speed (Auto | 10 | 100 | 1000 | 10000):"
+      private: no
+      default: ${speed}
+    - name: duplex
+      prompt: "Enter duplex (Auto | Full | Half):"
+      private: no
+      default: ${duplex}
+    - name: flow_control
+      prompt: "Enter flow control (On | Off | Auto):"
+      private: no
+      default: ${flowControl}
+    - name: mtu
+      prompt: "Enter MTU:"
+      private: no
+      default: ${mtu}
+    - name: description
+      prompt: "Enter description:"
+      private: no
+      default: ${description}
+
+  tasks:
+    - name: Create Interface Policy
+      uri:
+        url: https://sandboxapic.com/api/interface_policy
+        method: POST
+        body_format: json
+        body:
+          name: "{{ policy_name }}"
+          stp_mode: "{{ stp_mode }}"
+          stp_priority: "{{ stp_priority }}"
+          lldp_enable: "{{ lldp_enable }}"
+          lldp_interval: "{{ lldp_interval }}"
+          mcp_enable: "{{ mcp_enable }}"
+          lacp_enable: "{{ lacp_enable }}"
+          speed: "{{ speed }}"
+          duplex: "{{ duplex }}"
+          flow_control: "{{ flow_control }}"
+          mtu: "{{ mtu }}"
+          description: "{{ description }}"
+      register: response
+
+    - name: Print API Response
+      debug:
+        var: response`;
+
+  document.getElementById("yamlCode").value = yamlCode;
+}
+
+function copyYAMLCode() {
+  let yamlCodeTextarea = document.getElementById("yamlCode");
+  yamlCodeTextarea.select();
+  document.execCommand("copy");
+  alert("YAML code copied to clipboard!");
+}
+
+function downloadYAML() {
+  let yamlCode = document.getElementById("yamlCode").value;
+  let policyName = document.getElementById("policyName").value;
+  let filename = `${policyName}_interface_policy.yaml`;
+
+  // Create a blob with the YAML content
+  let blob = new Blob([yamlCode], { type: "text/yaml" });
+
+  // Create a link element
+  let link = document.createElement("a");
+
+  // Set link's properties
+  link.download = filename;
+  link.href = window.URL.createObjectURL(blob);
+  link.style.display = "none";
+
+  // Append link to the body
+  document.body.appendChild(link);
+
+  // Trigger click event on the link
+  link.click();
+
+  // Remove the link
+  document.body.removeChild(link);
+}
+</script>
+</body>
+</html>
+
+

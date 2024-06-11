@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>inventory</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h2 {
+            text-align: center;
+            color: #CC0000; /* Ooredoo red color */
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333333; /* Dark gray color */
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            background-color: #CC0000; /* Ooredoo red color */
+            color: #fff; /* White text color */
+        }
+        button:hover {
+            background-color: #990000; /* Darker shade of red on hover */
+        }
+        textarea {
+            width: calc(100% - 22px);
+            height: 200px;
+            padding: 8px;
+            margin-top: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<h2>create inventory </h2>
+
+<form id="yamlInventoryForm">
+  <label for="hosts">Hosts (comma-separated):</label>
+  <input type="text" id="hosts" name="hosts" required><br>
+  
+  <label for="groups">Groups (comma-separated):</label>
+  <input type="text" id="groups" name="groups"><br>
+
+  <label for="subnets">Subnets (comma-separated):</label>
+  <input type="text" id="subnets" name="subnets"><br>
+
+  <button type="button" id="generateBtn">Generate YAML</button>
+  <button type="button" id="copyBtn">Copy YAML</button>
+  <button type="button" id="downloadBtn">Download YAML</button>
+</form>
+
+<textarea id="yamlOutput" rows="10" cols="50" readonly></textarea>
+
+<script>
+document.getElementById("generateBtn").addEventListener("click", function() {
+  var hosts = document.getElementById("hosts").value.trim().split(",");
+  var groups = document.getElementById("groups").value.trim().split(",");
+  var subnets = document.getElementById("subnets").value.trim().split(",");
+
+  var yamlContent = `---
+all:
+  hosts:`;
+
+  hosts.forEach(function(host) {
+    yamlContent += `
+    ${host.trim()}:`;
+  });
+
+  yamlContent += `
+  vars:
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_user: admin
+    ansible_password: "!v3G@!4@Y"
+    ansible_become: yes
+    ansible_become_method: enable`;
+
+  groups.forEach(function(group) {
+    yamlContent += `
+  ${group.trim()}:
+    hosts:`;
+    hosts.forEach(function(host) {
+      yamlContent += `
+      ${host.trim()}`;
+    });
+  });
+
+  yamlContent += `
+  _meta:
+    hostvars:`;
+
+  hosts.forEach(function(host) {
+    yamlContent += `
+      ${host.trim()}:
+        ansible_host: ${host.trim()}`;
+  });
+
+  yamlContent += `
+subnets:`;
+  subnets.forEach(function(subnet) {
+    yamlContent += `
+  - ${subnet.trim()}`;
+  });
+
+  document.getElementById("yamlOutput").value = yamlContent;
+});
+
+document.getElementById("copyBtn").addEventListener("click", function() {
+  var yamlOutput = document.getElementById("yamlOutput");
+  yamlOutput.select();
+  document.execCommand("copy");
+  alert("YAML copied to clipboard!");
+});
+
+document.getElementById("downloadBtn").addEventListener("click", function() {
+  var yamlContent = document.getElementById("yamlOutput").value;
+  var blob = new Blob([yamlContent], { type: "text/yaml" });
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "inventory.yaml";
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACI Profile Configuration</title>
+    <style>
+        /* CSS styles remain the same */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin: 20px auto;
+            width: 300px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        button[type="submit"],
+        button[type="button"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button[type="button"]:hover,
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>ACI Profile Configuration</h1>
+    <form id="profileForm">
+        <label for="profileName">Profile Name:</label>
+        <input type="text" id="profileName" name="profileName" required>
+        <br>
+        <label for="interfaceSelector">Interface Numbers (comma-separated):</label>
+        <input type="text" id="interfaceSelector" name="interfaceSelector" required>
+        <br>
+        <label for="leafOrSpine">Leaf or Spine Name:</label>
+        <input type="text" id="leafOrSpine" name="leafOrSpine" required>
+        <br>
+        <button type="button" onclick="generateYAML()">Generate YAML</button>
+        <button type="button" onclick="downloadYAML()" id="executeButton" disabled>Execute</button>
+    </form>
+
+    <textarea id="yamlCode" readonly></textarea>
+
+    <script>
+        function generateYAML() {
+            var profileName = document.getElementById('profileName').value;
+            var interfaceNumbers = document.getElementById('interfaceSelector').value.split(',');
+            var leafOrSpine = document.getElementById('leafOrSpine').value;
+
+            var playbookYAML = `
+---
+- name: Apply profile to specific leaf or spine interfaces in Cisco ACI
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    aci_username: "admin"
+    aci_password: "!v3G@!4@Y"
+    aci_hostname: "sandbox.apic.com"
+    leaf_or_spine: "${leafOrSpine}"
+    profile_name: "${profileName}"
+
+  tasks:
+`;
+
+            interfaceNumbers.forEach(function(interfaceNumber) {
+                playbookYAML += `
+    - name: Apply profile to interface ${interfaceNumber.trim()}
+      aci_rest:
+        hostname: "{{ aci_hostname }}"
+        username: "{{ aci_username }}"
+        password: "{{ aci_password }}"
+        validate_certs: no
+        method: post
+        path: "/api/node/mo/uni/infra/{{ leaf_or_spine }}P-1/rsaccPortP-{{ profile_name }}.json"
+        content:
+          fvRsAccPortP:
+            attributes:
+              tDn: "uni/infra/{{ leaf_or_spine }}P-1"
+              lcOwn: "local"
+              rn: "rsaccPortP-{{ profile_name }}"
+              tnAccPortP: "accportp-{{ profile_name }}"
+              adminSt: "triggered"
+        status_forcelist: 400
+      register: result
+
+    - name: Check if profile applied successfully to interface ${interfaceNumber.trim()}
+      debug:
+        msg: "Profile applied successfully to interface ${interfaceNumber.trim()}."
+      when: result.status == 200
+
+    - name: Check if profile application failed on interface ${interfaceNumber.trim()}
+      debug:
+        msg: "Profile application failed on interface ${interfaceNumber.trim()} with status code {{ result.status }}"
+      when: result.status != 200
+`;
+            });
+
+            document.getElementById('yamlCode').value = playbookYAML;
+            document.getElementById('executeButton').disabled = false;
+        }
+
+        function downloadYAML() {
+            var yamlContent = document.getElementById('yamlCode').value;
+            var filename = "aci_profile_playbook.yml";
+            var blob = new Blob([yamlContent], { type: 'text/yaml' });
+
+            // Create a link element and set its attributes for downloading the file
+            var link = document.createElement('a');
+            link.download = filename;
+            link.href = window.URL.createObjectURL(blob);
+
+            // Append the link to the body and click it programmatically to trigger download
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup: remove the link after download
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
+

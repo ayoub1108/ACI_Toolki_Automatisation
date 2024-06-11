@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Tenant</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-image: url('file:///home/ayoub/Downloads/Untitled.png');
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  form {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8); /* Add opacity to the form background */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  label {
+    font-weight: bold;
+    color: #333; /* Ooredoo primary color */
+  }
+
+  input[type="text"],
+  textarea {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+    background-color: #e60000; /* Ooredoo red color */
+    color: white;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold; /* Making button text bold */
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #cc0000; /* Darker shade of red on hover */
+  }
+
+  #ansibleCode {
+    resize: vertical;
+  }
+</style>
+</head>
+<body>
+<form>
+  <label for="tenant">Tenant Name:</label>
+  <input type="text" placeholder="name_tenant" id="tenant" name="tenant" required><br><br>
+  
+  <label for="alias">Alias:</label>
+  <input type="text" id="alias"placeholder="alias" name="alias"><br><br>
+  
+  <label for="description">Description:</label><br>
+  <textarea id="description" placeholder="descripton" name="description" rows="4" cols="50"></textarea><br><br>
+  
+  <button type="button" onclick="generateAnsibleCode()">Run</button><br><br>
+  
+  <label for="ansibleCode">Ansible Code:</label><br>
+  <textarea id="ansibleCode" name="ansibleCode" rows="10" cols="50" readonly></textarea><br><br>
+  
+  <button type="button" onclick="copyToClipboard()">Copy Ansible Code</button><br><br>
+
+  <button type="button" onclick="executeAnsible()">Execute</button>
+</form>
+
+<script>
+function generateAnsibleCode() {
+  let tenant = document.getElementById("tenant").value;
+  let alias = document.getElementById("alias").value;
+  let description = document.getElementById("description").value;
+  
+  let ansibleCode = `- name: Add new tenant to Cisco ACI
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Create Tenant
+      aci_rest:
+        hostname: sandboxapicdc.cisco.com
+        username: admin
+        password: "!v3G@!4@Y"
+        validate_certs: no
+        method: post
+        path: /api/mo/uni/tn-${tenant}.json
+        content:
+          fvTenant:
+            attributes:
+              name: ${tenant}
+              
+              
+            children: []`;
+  
+  document.getElementById("ansibleCode").value = ansibleCode;
+}
+
+function copyToClipboard() {
+  let copyText = document.getElementById("ansibleCode");
+  copyText.select();
+  copyText.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  alert("Copied the Ansible code: " + copyText.value);
+}
+
+function executeAnsible() {
+  let tenant = document.getElementById("tenant").value;
+  let ansibleCode = document.getElementById("ansibleCode").value;
+
+  // Send a POST request to the Ansible controller/API endpoint
+  fetch('http://your-ansible-controller/api/execute-playbook', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ playbook: ansibleCode })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Failed to execute playbook');
+    }
+    return response.text();
+  })
+  .then(data => {
+    alert('Playbook executed successfully');
+    console.log(data);
+  })
+  .catch(error => {
+    console.error('Error executing playbook:', error);
+    alert('Error executing playbook');
+  });
+}
+</script>
+</body>
+</html>
+

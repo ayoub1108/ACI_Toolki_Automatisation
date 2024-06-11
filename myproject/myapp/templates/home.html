@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('/home/ayoub/Downloads/Untitled.png'); /* Adjust the path accordingly */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px; /* Add extra space below the heading */
+        }
+
+        button {
+            background-color: #ff0000; /* Red color */
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 5px; /* Add margin between buttons */
+        }
+
+        button:hover {
+            background-color: #cc0000; /* Darker shade of red on hover */
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Home Page</h1>
+   
+        <!-- Buttons to create a new tenant, VRF, and BD -->
+        <a href="/create_tenant/"><button type="button">Create Tenant</button></a>
+        <a href="/create_vrf"><button type="button">Create VRF</button></a> <!-- Redirect to vrf.html -->
+        <a href="/create_bd/"><button type="button">Create BD</button></a>
+        <a href="/create_vlanpool/"><button type="button">Create vlan pool</button></a>
+        <a href="/create_AEP/"><button type="button">Create AEP </button></a>
+  	<br>   <br/>
+  	<a href="/create_IGP/"><button type="button">Create interface policy groupe  </button></a>
+  	<a href="/create_SWP/"><button type="button">Create switch  policy groupe  </button></a>
+   	<a href="/create_Inv/"><button type="button">Create inventory </button></a>
+   <a href="/create_L3OUT/"><button type="button">Create L3OUT </button></a>
+   
+    </div>
+</body>
+</html>
+

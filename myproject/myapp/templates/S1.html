@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assign Switch Profile to Ports</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+  }
+  h2 {
+    text-align: center;
+  }
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  input[type="text"], textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  button:hover {
+    background-color: #45a049;
+    color: white;
+  }
+  textarea {
+    height: 200px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Assign Switch Profile to Ports</h2>
+
+<form id="assignSwitchProfileForm">
+  <label for="switchProfileName">Switch Profile Name:</label>
+  <input type="text" id="switchProfileName" name="switchProfileName" required><br>
+  
+  <label for="switchPorts">Switch Ports:</label>
+  <input id="switchPorts" name="switchPorts" rows="5" required></text><br> <br/>
+ <label for="switch name ">Switch name :</label>
+  <input id="switch name " name="switch name " rows="5" required></text><br> <br/>
+  <button type="button" id="generateBtn">Generate YAML</button>
+  <button type="button" id="copyBtn">Copy YAML</button>
+  <button type="button" id="downloadBtn">Download YAML</button>
+</form>
+
+<textarea id="yamlOutput" rows="10" cols="50" readonly></textarea>
+
+<script>
+document.getElementById("generateBtn").addEventListener("click", function() {
+  var switchProfileName = document.getElementById("switchProfileName").value;
+  var switchPorts = document.getElementById("switchPorts").value.trim().split("\n");
+  var yamlContent = `---
+- name: Assign Switch Profile to Ports
+  hosts: localhost
+  connection: local
+  vars:
+    switch_profile_name: "${switchProfileName}"
+    switch_ports: [`;
+
+  switchPorts.forEach(function(port) {
+    var [switchName, portName] = port.split(",");
+    yamlContent += `
+      - switch: "${switchName.trim()}"
+        port: "${portName.trim()}"`;
+  });
+
+  yamlContent += `
+  ]
+  tasks:
+    - name: Assign Switch Profile to Ports
+      aci_rest:
+        host: "sandboxapic.com"
+        username: "admin"
+        password: "!v3G@!4@Y"
+        validate_certs: no
+        method: post
+        path: "/api/node/mo/uni/infra/funcprof/{{ switch_profile_name }}/rspathAtt-[topology/pod-1/node-{{ item.switch }}/sys/phys-[{{ item.port }}]].json"
+        content:
+          infraRsAccPortP:
+            attributes:
+              tDn: "uni/infra/accportprof-{{ switch_profile_name }}"`;
+
+  document.getElementById("yamlOutput").value = yamlContent;
+});
+
+document.getElementById("copyBtn").addEventListener("click", function() {
+  var yamlOutput = document.getElementById("yamlOutput");
+  yamlOutput.select();
+  document.execCommand("copy");
+  alert("YAML copied to clipboard!");
+});
+
+document.getElementById("downloadBtn").addEventListener("click", function() {
+  var yamlContent = document.getElementById("yamlOutput").value;
+  var blob = new Blob([yamlContent], { type: "text/yaml" });
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "assign_switch_profile.yaml";
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
+

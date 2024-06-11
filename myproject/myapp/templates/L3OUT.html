@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Layer 3 Outside</title>
+    <style>
+        /* Add your CSS styles here */
+    </style>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Create Layer 3 Outside</h1>
+        <form id="aciForm">
+            <div class="form-group">
+                <label for="l3outName">L3Out Name:</label>
+                <input type="text" class="form-control" placeholder="name_L3OUT" id="l3outName" name="l3outName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="vrfName">VRF Name:</label>
+                <input type="text" class="form-control" placeholder="name_VRF" id="vrfName" name="vrfName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="tenantName">Tenant Name:</label>
+                <input type="text" class="form-control" id="tenantName" placeholder="name_tenant" name="tenantName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="subnet">Subnet:</label>
+                <input type="text" class="form-control" id="subnet" placeholder="subnet/mask" name="subnet">
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="enableSharedSecurity" name="enableSharedSecurity">
+                <label class="form-check-label" for="enableSharedSecurity">Enable Shared Security</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="enableExternalRoute" name="enableExternalRoute">
+                <label class="form-check-label" for="enableExternalRoute">Enable External Route</label>
+            </div>
+
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="enableSecurity" name="enableSecurity">
+                <label class="form-check-label" for="enableSecurity">Enable Security</label>
+            </div>
+
+            <button type="submit" class="btn btn-danger">Create Layer 3 Outside</button>
+        </form>
+
+        <div class="mt-3">
+            <button id="generate" class="btn btn-danger">Generate YAML</button>
+        </div>
+
+        <div class="mt-3">
+            <label for="ansibleCode">Ansible Playbook:</label>
+            <textarea id="ansibleCode" class="form-control" rows="10" readonly></textarea>
+        </div>
+
+        <div class="mt-3">
+            <button id="copy" class="btn btn-danger" disabled>Copy YAML</button>
+            <button id="download" class="btn btn-danger" disabled>Execute</button>
+        </div>
+
+        <div id="result" class="mt-3"></div>
+    </div>
+
+    <textarea id="yamlCode" rows="10" cols="50" readonly style="display: none;"></textarea><br><br>
+
+    <script>
+        document.getElementById('aciForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/create_l3out', true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    document.getElementById('output').innerHTML = xhr.responseText;
+                }
+            };
+            xhr.send(formData);
+        });
+
+        document.getElementById("generate").addEventListener("click", function() {
+            const l3outName = document.getElementById("l3outName").value;
+            const vrfName = document.getElementById("vrfName").value;
+            const tenantName = document.getElementById("tenantName").value;
+            const subnet = document.getElementById("subnet").value;
+            const enableSharedSecurity = document.getElementById("enableSharedSecurity").checked;
+            const enableExternalRoute = document.getElementById("enableExternalRoute").checked;
+            const enableSecurity = document.getElementById("enableSecurity").checked;
+
+            let options = "";
+            if (enableSharedSecurity) {
+                options += "  enable_shared_security: yes\n";
+            }
+            if (enableExternalRoute) {
+                options += "  enable_external_route: yes\n";
+            }
+            if (enableSecurity) {
+                options += "  enable_security: yes\n";
+            }
+
+            const yamlCode = `- name: Create Layer 3 Outside
+  aci_l3out:
+    host: sandboxapic.com
+    username: admin
+    password: !v3G@!4@Y
+    l3out_name: ${l3outName}
+    vrf: ${vrfName}
+    tenant: ${tenantName}
+    route_target: auto
+    enforce_subnet_check: no
+    external_epg: ext_epg
+    provided_contract: any
+    consumed_contract: any
+${options}    subnet: ${subnet}`;
+
+            document.getElementById("yamlCode").value = yamlCode;
+            document.getElementById("ansibleCode").value = yamlCode; // Set Ansible code
+            document.getElementById("copy").disabled = false;
+            document.getElementById("download").disabled = false;
+        });
+
+        document.getElementById("copy").addEventListener("click", function() {
+            const yamlCode = document.getElementById("yamlCode");
+            yamlCode.select();
+            yamlCode.setSelectionRange(0, 99999); /* For mobile devices */
+
+            document.execCommand("copy");
+            alert("YAML code copied to clipboard!");
+        });
+
+        document.getElementById("download").addEventListener("click", function() {
+            const l3outName = document.getElementById("l3outName").value;
+            const yamlCode = document.getElementById("yamlCode").value;
+
+            const element = document.createElement("a");
+            const file = new Blob([yamlCode], {type: 'text/plain'});
+            element.href = URL.createObjectURL(file);
+            element.download = l3outName + ".yaml";
+            document.body.appendChild(element); // Required for this to work in Firefox
+            element.click();
+            document.body.removeChild(element);
+        });
+    </script>
+</body>
+</html>
+

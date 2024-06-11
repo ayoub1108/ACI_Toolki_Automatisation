@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Switch Profile</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+  }
+  h2 {
+    text-align: center;
+  }
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  button:hover {
+    background-color: #45a049;
+    color: white;
+  }
+  textarea {
+    width: 100%;
+    height: 200px;
+    padding: 8px;
+    margin-top: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+
+<h2>Create Switch Profile</h2>
+
+<form id="switchProfileForm">
+  <label for="switchProfileName">Switch Profile Name:</label>
+  <input type="text" id="switchProfileName" name="switchProfileName" required><br>
+  
+  <label for="description">Description:</label>
+  <input type="text" id="description" name="description"><br>
+
+  <label for="switchingMode">Switching Mode:</label>
+  <input type="text" id="switchingMode" name="switchingMode" required><br>
+
+  <label for="lacpPreference">LACP Preference:</label>
+  <input type="text" id="lacpPreference" name="lacpPreference"><br>
+
+  <label for="portMode">Port Mode:</label>
+  <input type="text" id="portMode" name="portMode" required><br>
+
+  <label for="alias">Alias:</label>
+  <input type="text" id="alias" name="alias"><br>
+
+  <label for="annotation">Annotation:</label>
+  <input type="text" id="annotation" name="annotation"><br>
+
+  <button type="button" id="generateBtn">Generate YAML</button>
+  <button type="button" id="copyBtn">Copy YAML</button>
+  <button type="button" id="downloadBtn">Download YAML</button>
+</form>
+
+<textarea id="yamlOutput" rows="10" cols="50" readonly></textarea>
+
+<script>
+document.getElementById("generateBtn").addEventListener("click", function() {
+  var switchProfileName = document.getElementById("switchProfileName").value;
+  var description = document.getElementById("description").value;
+  var switchingMode = document.getElementById("switchingMode").value;
+  var lacpPreference = document.getElementById("lacpPreference").value;
+  var portMode = document.getElementById("portMode").value;
+  var alias = document.getElementById("alias").value;
+  var annotation = document.getElementById("annotation").value;
+
+  var yamlContent = `---
+- name: Create Switch Profile in sandboxapic.com
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create Switch Profile
+      aci_rest:
+        host: "sandboxapic.com"
+        username: "admin"
+        password: "!v3G@!4@Y"
+        validate_certs: no
+        method: post
+        path: "/api/node/mo/uni/infra/accportprof-${switchProfileName}.json"
+        content:
+          infraAccPortP: 
+            attributes:
+              dn: "uni/infra/accportprof-${switchProfileName}"
+              name: "${switchProfileName}"
+              descr: "${description}"
+              switchingMode: "${switchingMode}"
+              linkAggregationPref: "${lacpPreference}"
+              mode: "${portMode}"
+              nameAlias: "${alias}"
+              annotation: "${annotation}"`;
+
+  document.getElementById("yamlOutput").value = yamlContent;
+});
+
+document.getElementById("copyBtn").addEventListener("click", function() {
+  var yamlOutput = document.getElementById("yamlOutput");
+  yamlOutput.select();
+  document.execCommand("copy");
+  alert("YAML copied to clipboard!");
+});
+
+document.getElementById("downloadBtn").addEventListener("click", function() {
+  var yamlContent = document.getElementById("yamlOutput").value;
+  var blob = new Blob([yamlContent], { type: "text/yaml" });
+  var url = window.URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "switch_profile.yaml";
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+});
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAML Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('your-background-image-url.jpg'); /* Add your background image URL */
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8); /* Add opacity to the container background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #e60000; /* Ooredoo primary color */
+        }
+        label {
+            font-weight: bold;
+            color: #333; /* Ooredoo primary color */
+        }
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background-color: #e60000; /* Ooredoo red color */
+            color: white;
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #cc0000; /* Darker shade of red on hover */
+        }
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YAML Generator</h1>
+
+        <label for="bdName">Enter Blueprint Deployment Name:</label><br>
+        <input type="text" id="bdName"><br><br>
+
+        <label for="bdType">Select Blueprint Deployment Type:</label><br>
+        <select id="bdType">
+            <option value="VMS">VMS</option>
+            <option value="externalRouter">External Router</option>
+            <option value="physical">Physical</option>
+        </select><br><br>
+
+        <label for="vlanPool">Enter VLAN Pool Number:</label><br>
+        <input type="text" id="vlanPool"><br><br>
+
+        <label for="aep">Enter AEP Number:</label><br>
+        <input type="text" id="aep"><br><br>
+
+        <label for="vrf">Enter VRF:</label><br>
+        <input type="text" id="vrf"><br><br>
+
+        <button onclick="generateYAML()">Generate YAML</button><br><br>
+        <textarea id="yamlCode" rows="10" cols="50" readonly></textarea><br><br>
+        <button onclick="copyYAML()">Copy YAML</button>
+    </div>
+
+    <script>
+        function generateYAML() {
+            const bdName = document.getElementById('bdName').value;
+            const bdType = document.getElementById('bdType').value;
+            const vlanPool = document.getElementById('vlanPool').value;
+            const aep = document.getElementById('aep').value;
+            const vrf = document.getElementById('vrf').value;
+            
+            const yamlCode = `---
+- name: Create Blueprint Deployment
+  hosts: localhost
+  gather_facts: no
+  
+  tasks:
+    - name: Add Bridge Domain
+      cisco.aci.aci_bd:
+        host: sandboxapicdc.cisco.com  # Update to your APIC hostname or IP address
+        username: "admin"        # Update with your APIC username
+        password: "!v3G@!4@Y"    # Update with your APIC password
+        validate_certs: false
+        tenant: prod
+        bd: ${bdName}
+        mac_address: "00:22:BD:F8:19:FE"
+        vrf: ${vrf}
+        state: present
+      delegate_to: localhost`;
+
+            document.getElementById('yamlCode').value = yamlCode;
+        }
+
+        function copyYAML() {
+            const yamlCode = document.getElementById('yamlCode');
+            yamlCode.select();
+            document.execCommand('copy');
+            alert('YAML code copied!');
+        }
+    </script>
+</body>
+</html>
+
